@@ -48,5 +48,18 @@ module.exports = {
         } catch (error) {
             return false;
         }
+    },
+    ChangePassword: async function (userId, newPassword) {
+        try {
+            let hashedPassword = bcrypt.hashSync(newPassword, 10);
+            let user = await userModel.findByIdAndUpdate(
+                userId,
+                { password: hashedPassword },
+                { new: true }
+            );
+            return user;
+        } catch (error) {
+            throw error;
+        }
     }
 }
