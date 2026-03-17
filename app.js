@@ -27,13 +27,27 @@ app.use('/api/v1/products', require('./routes/products'));
 app.use('/api/v1/roles', require('./routes/roles'));
 app.use('/api/v1/auth', require('./routes/auth'));
 
-mongoose.connect('mongodb://localhost:27017/NNPTUD-S3');
-mongoose.connection.on('connected', function () {
-  console.log("connected");
-})
-mongoose.connection.on('disconnected', function () {
-  console.log("disconnected");
-})
+// Connect to MongoDB
+async function connectDB() {
+  try {
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/NNPTUD-S3';
+    await mongoose.connect(mongoUri);
+    console.log("✓ MongoDB connected successfully");
+  } catch (err) {
+    console.log("MongoDB connection failed, starting in-memory MongoDB...");
+    try {
+      const startMongoDB = require('./mongoSetup');
+      const mongoServer = await startMongoDB();
+      await mongoose.connect(process.env.MONGODB_URI);
+      console.log("✓ In-Memory MongoDB connected successfully");
+    } catch (fallbackErr) {
+      console.error("Failed to start both MongoDB and in-memory server:", fallbackErr);
+      process.exit(1);
+    }
+  }
+}
+
+connectDB();
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
